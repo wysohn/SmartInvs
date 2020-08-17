@@ -97,11 +97,6 @@ public class SmartInventory {
     }
 
     public void close(Player player) {
-        listeners.stream()
-                .filter(listener -> listener.getType() == InventoryCloseEvent.class)
-                .forEach(listener -> ((InventoryListener<InventoryCloseEvent>) listener)
-                        .accept(new InventoryCloseEvent(player.getOpenInventory())));
-
         this.manager.setInventory(player, null);
         player.closeInventory();
 
