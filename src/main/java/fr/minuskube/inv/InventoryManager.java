@@ -236,23 +236,21 @@ public class InventoryManager {
 
             SmartInventory inv = inventories.get(inventory);
 
-            try{
-                inv.getListeners().stream()
-                        .filter(listener -> listener.getType() == InventoryCloseEvent.class)
-                        .forEach(listener -> ((InventoryListener<InventoryCloseEvent>) listener).accept(e));
-            } finally {
-                // if closeable, just close.
-                // if not closeable, check whether it's marked as closed before closing it.
-                //     if not marked as closed, it should re-open the inventory
-                if(inv.isCloseable() || inv.isClosed()) {
-                    e.getInventory().clear();
-                    InventoryManager.this.cancelUpdateTask(inventory);
+            Bukkit.getScheduler().runTask(plugin, () -> inv.getListeners().stream()
+                    .filter(listener -> listener.getType() == InventoryCloseEvent.class)
+                    .forEach(listener -> ((InventoryListener<InventoryCloseEvent>) listener).accept(e)));
 
-                    inventories.remove(inventory);
-                    contents.remove(inventory);
-                } else
-                    Bukkit.getScheduler().runTask(plugin, () -> player.openInventory(e.getInventory()));
-            }
+            // if closeable, just close.
+            // if not closeable, check whether it's marked as closed before closing it.
+            //     if not marked as closed, it should re-open the inventory
+            if(inv.isCloseable() || inv.isClosed()) {
+                e.getInventory().clear();
+                InventoryManager.this.cancelUpdateTask(inventory);
+
+                inventories.remove(inventory);
+                contents.remove(inventory);
+            } else
+                Bukkit.getScheduler().runTaskLater(plugin, () -> player.openInventory(e.getInventory()), 2L);
         }
 
         @EventHandler(priority = EventPriority.LOW)
